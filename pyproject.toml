@@ -1,0 +1,9 @@
+[project]
+name = "oci-latency-test"
+version = "0.1.0"
+description = "Ping OCI Object Storage endpoints and sort by average latency."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
