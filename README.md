@@ -31,7 +31,9 @@ The Python version uses only the standard library. You can run it with `uv` or d
 
 ## Quick Start
 
-### Run Without Cloning
+### Linux / macOS
+
+Run directly:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/fangyuan99/oci-latency-test/main/oci.sh | sh
@@ -43,7 +45,27 @@ Export CSV:
 curl -fsSL https://raw.githubusercontent.com/fangyuan99/oci-latency-test/main/oci.sh | sh -s -- results.csv
 ```
 
-### Windows PowerShell Without Cloning
+Clone and run locally:
+
+```bash
+git clone https://github.com/fangyuan99/oci-latency-test.git
+cd oci-latency-test
+chmod +x oci.sh
+./oci.sh
+```
+
+Export CSV after cloning:
+
+```bash
+git clone https://github.com/fangyuan99/oci-latency-test.git
+cd oci-latency-test
+chmod +x oci.sh
+./oci.sh results.csv
+```
+
+### Windows PowerShell
+
+Run directly:
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/fangyuan99/oci-latency-test/main/oci.ps1)))
@@ -55,7 +77,25 @@ Export CSV:
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/fangyuan99/oci-latency-test/main/oci.ps1))) .\results.csv
 ```
 
-### Python 3.11+ Without Cloning
+Clone and run locally:
+
+```powershell
+git clone https://github.com/fangyuan99/oci-latency-test.git
+cd oci-latency-test
+.\oci.ps1
+```
+
+Export CSV after cloning:
+
+```powershell
+git clone https://github.com/fangyuan99/oci-latency-test.git
+cd oci-latency-test
+.\oci.ps1 .\results.csv
+```
+
+### Python 3.11+ (Cross-Platform)
+
+Run directly:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/fangyuan99/oci-latency-test/main/oci_py.py | python3 -
@@ -67,16 +107,15 @@ Export CSV:
 curl -fsSL https://raw.githubusercontent.com/fangyuan99/oci-latency-test/main/oci_py.py | python3 - results.csv
 ```
 
-### Run After `git clone`
+Clone and run locally:
 
 ```bash
 git clone https://github.com/fangyuan99/oci-latency-test.git
 cd oci-latency-test
-chmod +x oci.sh
-./oci.sh
+python3 oci_py.py
 ```
 
-Export CSV:
+Export CSV after cloning:
 
 ```bash
 git clone https://github.com/fangyuan99/oci-latency-test.git
@@ -84,20 +123,12 @@ cd oci-latency-test
 python3 oci_py.py results.csv
 ```
 
-Run the Python version with `uv` after cloning:
+Run with `uv` after cloning:
 
 ```bash
 git clone https://github.com/fangyuan99/oci-latency-test.git
 cd oci-latency-test
 uv run python oci_py.py
-```
-
-Run the PowerShell version after cloning:
-
-```powershell
-git clone https://github.com/fangyuan99/oci-latency-test.git
-cd oci-latency-test
-.\oci.ps1
 ```
 
 ## Environment Variables
