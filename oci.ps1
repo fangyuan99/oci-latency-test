@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 $CountValue = if ($env:COUNT) { $env:COUNT } else { '4' }
 $MaxJobsValue = if ($env:MAX_JOBS) { $env:MAX_JOBS } else { '8' }
+$TestUrlValue = if ($env:TEST_URL) { $env:TEST_URL } else { 'https://{hostname}/' }
 $OutputArg = if ($args.Count -gt 0) { $args[0] } else { $null }
 
 function Get-PositiveInteger {
@@ -114,7 +115,7 @@ function Format-ResultsTable {
     )
 
     $rows = @(
-        @('region', 'subregion', 'city', 'hostname', 'avg_latency_ms', 'status')
+        ,@('region', 'subregion', 'city', 'hostname', 'avg_latency_ms', 'http', 'status')
     )
 
     foreach ($result in $Results) {
@@ -124,6 +125,7 @@ function Format-ResultsTable {
             [string] $result.city,
             [string] $result.hostname,
             [string] $result.avg_latency_ms,
+            [string] $result.http,
             [string] $result.status
         )
     }
@@ -142,7 +144,7 @@ function Format-ResultsTable {
 
     $lines = foreach ($row in $rows) {
         $cells = for ($column = 0; $column -lt $row.Count; $column++) {
-            $alignment = if ($column -eq 4) { 'right' } else { 'left' }
+            $alignment = if ($column -eq 4 -or $column -eq 5) { 'right' } else { 'left' }
             Pad-Cell -Text $row[$column] -Width $widths[$column] -Align $alignment
         }
         $cells -join '  '
@@ -165,7 +167,7 @@ function Write-ResultsCsv {
     }
 
     $Results |
-        Select-Object region, subregion, city, hostname, avg_latency_ms, status |
+        Select-Object region, subregion, city, hostname, avg_latency_ms, http, status |
         Export-Csv -Path $Path -NoTypeInformation -Encoding UTF8
 }
 
@@ -219,9 +221,14 @@ $Endpoints = @(
 $jobScript = {
     param(
         [hashtable] $Endpoint,
-        [int] $PingCount
+        [int] $PingCount,
+        [string] $TestUrlTemplate
     )
 
+    # Ping test
+    $avgLatency = 'N/A'
+    $sortKey = 999999.0
+    $pingOk = $false
     try {
         $responses = Test-Connection -ComputerName $Endpoint.hostname -Count $PingCount -ErrorAction Stop
         if ($null -eq $responses) {
@@ -246,27 +253,71 @@ $jobScript = {
         }
 
         $avg = [Math]::Round((($samples | Measure-Object -Average).Average), 3)
+        $avgLatency = $avg.ToString('0.###', [System.Globalization.CultureInfo]::InvariantCulture)
+        $sortKey = [double] $avg
+        $pingOk = $true
+    }
+    catch { }
 
-        return [pscustomobject] @{
-            region = $Endpoint.region
-            subregion = $Endpoint.subregion
-            city = $Endpoint.city
-            hostname = $Endpoint.hostname
-            avg_latency_ms = $avg.ToString('0.###', [System.Globalization.CultureInfo]::InvariantCulture)
-            status = 'ok'
-            sort_key = [double] $avg
+    # HTTP test: TTFB when no custom URL, download speed when TEST_URL provides enough data
+    $httpResult = 'N/A'
+    try {
+        $testUri = $TestUrlTemplate -replace '\{hostname\}', $Endpoint.hostname
+        $req = [System.Net.HttpWebRequest]::Create($testUri)
+        $req.Timeout = 20000
+        $req.ReadWriteTimeout = 20000
+
+        $resp = $null
+        $swTotal = [System.Diagnostics.Stopwatch]::StartNew()
+        try {
+            $resp = $req.GetResponse()
+        }
+        catch [System.Net.WebException] {
+            if ($null -ne $_.Exception.Response) {
+                $resp = $_.Exception.Response
+            }
+            else {
+                throw
+            }
+        }
+        $ttfbMs = $swTotal.ElapsedMilliseconds
+
+        $stream = $resp.GetResponseStream()
+        $buffer = [byte[]]::new(65536)
+        $totalBytes = 0L
+        $swRead = [System.Diagnostics.Stopwatch]::StartNew()
+
+        do {
+            $read = $stream.Read($buffer, 0, $buffer.Length)
+            if ($read -le 0) { break }
+            $totalBytes += $read
+        } while ($swRead.ElapsedMilliseconds -lt 8000)
+
+        $swTotal.Stop()
+        $stream.Dispose()
+        $resp.Dispose()
+
+        # Need at least 10 KB to report a meaningful throughput figure
+        if ($totalBytes -ge 10240 -and $swTotal.Elapsed.TotalSeconds -gt 0) {
+            $bps = $totalBytes / $swTotal.Elapsed.TotalSeconds
+            $mbps = [Math]::Round($bps * 8 / 1000000, 2)
+            $httpResult = $mbps.ToString('0.##', [System.Globalization.CultureInfo]::InvariantCulture) + ' Mbps'
+        }
+        elseif ($ttfbMs -gt 0) {
+            $httpResult = $ttfbMs.ToString() + ' ms'
         }
     }
-    catch {
-        return [pscustomobject] @{
-            region = $Endpoint.region
-            subregion = $Endpoint.subregion
-            city = $Endpoint.city
-            hostname = $Endpoint.hostname
-            avg_latency_ms = 'N/A'
-            status = 'failed'
-            sort_key = 999999.0
-        }
+    catch { }
+
+    return [pscustomobject] @{
+        region         = $Endpoint.region
+        subregion      = $Endpoint.subregion
+        city           = $Endpoint.city
+        hostname       = $Endpoint.hostname
+        avg_latency_ms = $avgLatency
+        http           = $httpResult
+        status         = if ($pingOk) { 'ok' } else { 'failed' }
+        sort_key       = $sortKey
     }
 }
 
@@ -275,8 +326,8 @@ $results = [System.Collections.Generic.List[object]]::new()
 
 try {
     foreach ($endpoint in $Endpoints) {
-        Write-Host ('Pinging {0} ...' -f $endpoint.hostname)
-        $jobs.Add((Start-Job -ScriptBlock $jobScript -ArgumentList $endpoint, $Count))
+        Write-Host ('Testing {0} ...' -f $endpoint.hostname)
+        $jobs.Add((Start-Job -ScriptBlock $jobScript -ArgumentList $endpoint, $Count, $TestUrlValue))
 
         while ($jobs.Count -ge $MaxJobs) {
             $finishedJob = Wait-Job -Job $jobs -Any
