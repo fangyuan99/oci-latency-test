@@ -1,6 +1,11 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+if ($Host.Name -eq 'ConsoleHost') {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+}
+
 $CountValue = if ($env:COUNT) { $env:COUNT } else { '4' }
 $MaxJobsValue = if ($env:MAX_JOBS) { $env:MAX_JOBS } else { '8' }
 $TestUrlValue = if ($env:TEST_URL) { $env:TEST_URL } else { 'https://{hostname}/' }
