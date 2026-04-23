@@ -1,8 +1,15 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+if ($Host.Name -eq 'ConsoleHost') {
+    $null = chcp 65001
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+}
+
 $CountValue = if ($env:COUNT) { $env:COUNT } else { '4' }
 $MaxJobsValue = if ($env:MAX_JOBS) { $env:MAX_JOBS } else { '8' }
+$TestUrlValue = if ($env:TEST_URL) { $env:TEST_URL } else { 'https://{hostname}/' }
 $OutputArg = if ($args.Count -gt 0) { $args[0] } else { $null }
 
 function Get-PositiveInteger {
@@ -114,7 +121,7 @@ function Format-ResultsTable {
     )
 
     $rows = @(
-        @('region', 'subregion', 'city', 'hostname', 'avg_latency_ms', 'status')
+        ,@('region', 'subregion', 'city', 'hostname', 'avg_latency_ms', 'http', 'status')
     )
 
     foreach ($result in $Results) {
@@ -124,6 +131,7 @@ function Format-ResultsTable {
             [string] $result.city,
             [string] $result.hostname,
             [string] $result.avg_latency_ms,
+            [string] $result.http,
             [string] $result.status
         )
     }
@@ -142,7 +150,7 @@ function Format-ResultsTable {
 
     $lines = foreach ($row in $rows) {
         $cells = for ($column = 0; $column -lt $row.Count; $column++) {
-            $alignment = if ($column -eq 4) { 'right' } else { 'left' }
+            $alignment = if ($column -eq 4 -or $column -eq 5) { 'right' } else { 'left' }
             Pad-Cell -Text $row[$column] -Width $widths[$column] -Align $alignment
         }
         $cells -join '  '
@@ -165,7 +173,7 @@ function Write-ResultsCsv {
     }
 
     $Results |
-        Select-Object region, subregion, city, hostname, avg_latency_ms, status |
+        Select-Object region, subregion, city, hostname, avg_latency_ms, http, status |
         Export-Csv -Path $Path -NoTypeInformation -Encoding UTF8
 }
 
@@ -178,50 +186,21 @@ catch {
     exit 1
 }
 
-$Endpoints = @(
-    @{ region = '亚太地区'; subregion = '日本东部'; city = '东京'; hostname = 'objectstorage.ap-tokyo-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '日本中部'; city = '大阪'; hostname = 'objectstorage.ap-osaka-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '韩国中部'; city = '首尔'; hostname = 'objectstorage.ap-seoul-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '韩国北部'; city = '春川'; hostname = 'objectstorage.ap-chuncheon-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '新加坡'; city = '新加坡'; hostname = 'objectstorage.ap-singapore-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '澳大利亚东部'; city = '悉尼'; hostname = 'objectstorage.ap-sydney-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '澳大利亚东南部'; city = '墨尔本'; hostname = 'objectstorage.ap-melbourne-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '印度西部'; city = '孟买'; hostname = 'objectstorage.ap-mumbai-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '印度南部'; city = '海得拉巴'; hostname = 'objectstorage.ap-hyderabad-1.oraclecloud.com' },
-    @{ region = '亚太地区'; subregion = '以色列中部'; city = '耶路撒冷'; hostname = 'objectstorage.il-jerusalem-1.oraclecloud.com' },
-    @{ region = '北美地区'; subregion = '美国东部'; city = '阿什本'; hostname = 'objectstorage.us-ashburn-1.oraclecloud.com' },
-    @{ region = '北美地区'; subregion = '美国西部'; city = '凤凰城'; hostname = 'objectstorage.us-phoenix-1.oraclecloud.com' },
-    @{ region = '北美地区'; subregion = '美国西部'; city = '圣何塞'; hostname = 'objectstorage.us-sanjose-1.oraclecloud.com' },
-    @{ region = '北美地区'; subregion = '加拿大东南部'; city = '蒙特利尔'; hostname = 'objectstorage.ca-montreal-1.oraclecloud.com' },
-    @{ region = '北美地区'; subregion = '加拿大东南部'; city = '多伦多'; hostname = 'objectstorage.ca-toronto-1.oraclecloud.com' },
-    @{ region = '北美地区'; subregion = '墨西哥中部'; city = '克雷塔罗'; hostname = 'objectstorage.mx-queretaro-1.oraclecloud.com' },
-    @{ region = '北美地区'; subregion = '墨西哥东北部'; city = '蒙特雷'; hostname = 'objectstorage.mx-monterrey-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '英国南部'; city = '伦敦'; hostname = 'objectstorage.uk-london-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '英国西部'; city = '纽波特'; hostname = 'objectstorage.uk-cardiff-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '德国中部'; city = '法兰克福'; hostname = 'objectstorage.eu-frankfurt-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '瑞士北部'; city = '苏黎世'; hostname = 'objectstorage.eu-zurich-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '瑞典中部'; city = '斯德哥尔摩'; hostname = 'objectstorage.eu-stockholm-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '荷兰西北部'; city = '阿姆斯特丹'; hostname = 'objectstorage.eu-amsterdam-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '法国中部'; city = '巴黎'; hostname = 'objectstorage.eu-paris-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '法国南部'; city = '马赛'; hostname = 'objectstorage.eu-marseille-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '西班牙中部'; city = '马德里'; hostname = 'objectstorage.eu-madrid-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '意大利西北部'; city = '米兰'; hostname = 'objectstorage.eu-milan-1.oraclecloud.com' },
-    @{ region = '中东地区'; subregion = '阿联酋东部'; city = '迪拜'; hostname = 'objectstorage.me-dubai-1.oraclecloud.com' },
-    @{ region = '中东地区'; subregion = '阿联酋中部'; city = '阿布扎比'; hostname = 'objectstorage.me-abudhabi-1.oraclecloud.com' },
-    @{ region = '中东地区'; subregion = '沙特阿拉伯西部'; city = '吉达'; hostname = 'objectstorage.me-jeddah-1.oraclecloud.com' },
-    @{ region = '南美地区'; subregion = '巴西东部'; city = '圣保罗'; hostname = 'objectstorage.sa-saopaulo-1.oraclecloud.com' },
-    @{ region = '南美地区'; subregion = '巴西南部'; city = '文郝多'; hostname = 'objectstorage.sa-vinhedo-1.oraclecloud.com' },
-    @{ region = '南美地区'; subregion = '智利中部'; city = '圣地亚哥'; hostname = 'objectstorage.sa-santiago-1.oraclecloud.com' },
-    @{ region = '南美地区'; subregion = '哥伦比亚中部'; city = '波哥大'; hostname = 'objectstorage.sa-bogota-1.oraclecloud.com' },
-    @{ region = '非洲地区'; subregion = '南非中部'; city = '约翰内斯堡'; hostname = 'objectstorage.af-johannesburg-1.oraclecloud.com' }
-)
+$Endpoints = (ConvertFrom-Json ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(
+    'W3sicmVnaW9uIjoi5Lqa5aSq5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5pel5pys5Lic6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmFwLXRva3lvLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuS4nOS6rCJ9LHsicmVnaW9uIjoi5Lqa5aSq5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5pel5pys5Lit6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmFwLW9zYWthLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuWkp+mYqiJ9LHsicmVnaW9uIjoi5Lqa5aSq5Zyw5Yy6Iiwic3VicmVnaW9uIjoi6Z+p5Zu95Lit6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmFwLXNlb3VsLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IummluWwlCJ9LHsicmVnaW9uIjoi5Lqa5aSq5Zyw5Yy6Iiwic3VicmVnaW9uIjoi6Z+p5Zu95YyX6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmFwLWNodW5jaGVvbi0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLmmKXlt50ifSx7InJlZ2lvbiI6IuS6muWkquWcsOWMuiIsInN1YnJlZ2lvbiI6IuaWsOWKoOWdoSIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS5hcC1zaW5nYXBvcmUtMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi5paw5Yqg5Z2hIn0seyJyZWdpb24iOiLkuprlpKrlnLDljLoiLCJzdWJyZWdpb24iOiLmvrPlpKfliKnkuprkuJzpg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UuYXAtc3lkbmV5LTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuaCieWwvCJ9LHsicmVnaW9uIjoi5Lqa5aSq5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5r6z5aSn5Yip5Lqa5Lic5Y2X6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmFwLW1lbGJvdXJuZS0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLloqjlsJTmnKwifSx7InJlZ2lvbiI6IuS6muWkquWcsOWMuiIsInN1YnJlZ2lvbiI6IuWNsOW6puilv+mDqCIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS5hcC1tdW1iYWktMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi5a2f5LmwIn0seyJyZWdpb24iOiLkuprlpKrlnLDljLoiLCJzdWJyZWdpb24iOiLljbDluqbljZfpg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UuYXAtaHlkZXJhYmFkLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6Iua1t+W+l+aLieW3tCJ9LHsicmVnaW9uIjoi5Lqa5aSq5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5Lul6Imy5YiX5Lit6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmlsLWplcnVzYWxlbS0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLogLbot6/mkpLlhrcifSx7InJlZ2lvbiI6IuWMl+e+juWcsOWMuiIsInN1YnJlZ2lvbiI6Iue+juWbveS4nOmDqCIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS51cy1hc2hidXJuLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IumYv+S7gOacrCJ9LHsicmVnaW9uIjoi5YyX576O5Zyw5Yy6Iiwic3VicmVnaW9uIjoi576O5Zu96KW/6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLnVzLXBob2VuaXgtMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi5Yek5Yew5Z+OIn0seyJyZWdpb24iOiLljJfnvo7lnLDljLoiLCJzdWJyZWdpb24iOiLnvo7lm73opb/pg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UudXMtc2Fuam9zZS0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLlnKPkvZXloZ4ifSx7InJlZ2lvbiI6IuWMl+e+juWcsOWMuiIsInN1YnJlZ2lvbiI6IuWKoOaLv+Wkp+S4nOWNl+mDqCIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS5jYS1tb250cmVhbC0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLokpnnibnliKnlsJQifSx7InJlZ2lvbiI6IuWMl+e+juWcsOWMuiIsInN1YnJlZ2lvbiI6IuWKoOaLv+Wkp+S4nOWNl+mDqCIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS5jYS10b3JvbnRvLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuWkmuS8puWkmiJ9LHsicmVnaW9uIjoi5YyX576O5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5aKo6KW/5ZOl5Lit6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLm14LXF1ZXJldGFyby0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLlhYvpm7floZTnvZcifSx7InJlZ2lvbiI6IuWMl+e+juWcsOWMuiIsInN1YnJlZ2lvbiI6IuWiqOilv+WTpeS4nOWMl+mDqCIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS5teC1tb250ZXJyZXktMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi6JKZ54m56Zu3In0seyJyZWdpb24iOiLmrKfmtLLlnLDljLoiLCJzdWJyZWdpb24iOiLoi7Hlm73ljZfpg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UudWstbG9uZG9uLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuS8puaVpiJ9LHsicmVnaW9uIjoi5qyn5rSy5Zyw5Yy6Iiwic3VicmVnaW9uIjoi6Iux5Zu96KW/6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLnVrLWNhcmRpZmYtMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi57q95rOi54m5In0seyJyZWdpb24iOiLmrKfmtLLlnLDljLoiLCJzdWJyZWdpb24iOiLlvrflm73kuK3pg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UuZXUtZnJhbmtmdXJ0LTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuazleWFsOWFi+emjyJ9LHsicmVnaW9uIjoi5qyn5rSy5Zyw5Yy6Iiwic3VicmVnaW9uIjoi55Ge5aOr5YyX6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmV1LXp1cmljaC0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLoi4/pu47kuJYifSx7InJlZ2lvbiI6Iuasp+a0suWcsOWMuiIsInN1YnJlZ2lvbiI6IueRnuWFuOS4remDqCIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS5ldS1zdG9ja2hvbG0tMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi5pav5b635ZOl5bCU5pGpIn0seyJyZWdpb24iOiLmrKfmtLLlnLDljLoiLCJzdWJyZWdpb24iOiLojbflhbDopb/ljJfpg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UuZXUtYW1zdGVyZGFtLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IumYv+WnhuaWr+eJueS4uSJ9LHsicmVnaW9uIjoi5qyn5rSy5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5rOV5Zu95Lit6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmV1LXBhcmlzLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuW3tOm7jiJ9LHsicmVnaW9uIjoi5qyn5rSy5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5rOV5Zu95Y2X6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmV1LW1hcnNlaWxsZS0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLpqazotZsifSx7InJlZ2lvbiI6Iuasp+a0suWcsOWMuiIsInN1YnJlZ2lvbiI6Iuilv+ePreeJmeS4remDqCIsImhvc3RuYW1lIjoib2JqZWN0c3RvcmFnZS5ldS1tYWRyaWQtMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi6ams5b636YeMIn0seyJyZWdpb24iOiLmrKfmtLLlnLDljLoiLCJzdWJyZWdpb24iOiLmhI/lpKfliKnopb/ljJfpg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UuZXUtbWlsYW4tMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi57Gz5YWwIn0seyJyZWdpb24iOiLkuK3kuJzlnLDljLoiLCJzdWJyZWdpb24iOiLpmL/ogZTphYvkuJzpg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UubWUtZHViYWktMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi6L+q5oucIn0seyJyZWdpb24iOiLkuK3kuJzlnLDljLoiLCJzdWJyZWdpb24iOiLpmL/ogZTphYvkuK3pg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UubWUtYWJ1ZGhhYmktMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi6Zi/5biD5omO5q+UIn0seyJyZWdpb24iOiLkuK3kuJzlnLDljLoiLCJzdWJyZWdpb24iOiLmspnnibnpmL/mi4nkvK/opb/pg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2UubWUtamVkZGFoLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuWQiei+viJ9LHsicmVnaW9uIjoi5Y2X576O5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5be06KW/5Lic6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLnNhLXNhb3BhdWxvLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuWco+S/nee9lyJ9LHsicmVnaW9uIjoi5Y2X576O5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5be06KW/5Y2X6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLnNhLXZpbmhlZG8tMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi5paH6YOd5aSaIn0seyJyZWdpb24iOiLljZfnvo7lnLDljLoiLCJzdWJyZWdpb24iOiLmmbrliKnkuK3pg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2Uuc2Etc2FudGlhZ28tMS5vcmFjbGVjbG91ZC5jb20iLCJjaXR5Ijoi5Zyj5Zyw5Lqa5ZOlIn0seyJyZWdpb24iOiLljZfnvo7lnLDljLoiLCJzdWJyZWdpb24iOiLlk6XkvKbmr5TkuprkuK3pg6giLCJob3N0bmFtZSI6Im9iamVjdHN0b3JhZ2Uuc2EtYm9nb3RhLTEub3JhY2xlY2xvdWQuY29tIiwiY2l0eSI6IuazouWTpeWkpyJ9LHsicmVnaW9uIjoi6Z2e5rSy5Zyw5Yy6Iiwic3VicmVnaW9uIjoi5Y2X6Z2e5Lit6YOoIiwiaG9zdG5hbWUiOiJvYmplY3RzdG9yYWdlLmFmLWpvaGFubmVzYnVyZy0xLm9yYWNsZWNsb3VkLmNvbSIsImNpdHkiOiLnuqbnv7DlhoXmlq/loKEifV0='
+)))) | ForEach-Object { @{ region = $_.region; subregion = $_.subregion; city = $_.city; hostname = $_.hostname } }
 
 $jobScript = {
     param(
         [hashtable] $Endpoint,
-        [int] $PingCount
+        [int] $PingCount,
+        [string] $TestUrlTemplate
     )
 
+    # Ping test
+    $avgLatency = 'N/A'
+    $sortKey = 999999.0
+    $pingOk = $false
     try {
         $responses = Test-Connection -ComputerName $Endpoint.hostname -Count $PingCount -ErrorAction Stop
         if ($null -eq $responses) {
@@ -246,27 +225,71 @@ $jobScript = {
         }
 
         $avg = [Math]::Round((($samples | Measure-Object -Average).Average), 3)
+        $avgLatency = $avg.ToString('0.###', [System.Globalization.CultureInfo]::InvariantCulture)
+        $sortKey = [double] $avg
+        $pingOk = $true
+    }
+    catch { }
 
-        return [pscustomobject] @{
-            region = $Endpoint.region
-            subregion = $Endpoint.subregion
-            city = $Endpoint.city
-            hostname = $Endpoint.hostname
-            avg_latency_ms = $avg.ToString('0.###', [System.Globalization.CultureInfo]::InvariantCulture)
-            status = 'ok'
-            sort_key = [double] $avg
+    # HTTP test: TTFB when no custom URL, download speed when TEST_URL provides enough data
+    $httpResult = 'N/A'
+    try {
+        $testUri = $TestUrlTemplate -replace '\{hostname\}', $Endpoint.hostname
+        $req = [System.Net.HttpWebRequest]::Create($testUri)
+        $req.Timeout = 20000
+        $req.ReadWriteTimeout = 20000
+
+        $resp = $null
+        $swTotal = [System.Diagnostics.Stopwatch]::StartNew()
+        try {
+            $resp = $req.GetResponse()
+        }
+        catch [System.Net.WebException] {
+            if ($null -ne $_.Exception.Response) {
+                $resp = $_.Exception.Response
+            }
+            else {
+                throw
+            }
+        }
+        $ttfbMs = $swTotal.ElapsedMilliseconds
+
+        $stream = $resp.GetResponseStream()
+        $buffer = [byte[]]::new(65536)
+        $totalBytes = 0L
+        $swRead = [System.Diagnostics.Stopwatch]::StartNew()
+
+        do {
+            $read = $stream.Read($buffer, 0, $buffer.Length)
+            if ($read -le 0) { break }
+            $totalBytes += $read
+        } while ($swRead.ElapsedMilliseconds -lt 8000)
+
+        $swTotal.Stop()
+        $stream.Dispose()
+        $resp.Dispose()
+
+        # Need at least 10 KB to report a meaningful throughput figure
+        if ($totalBytes -ge 10240 -and $swTotal.Elapsed.TotalSeconds -gt 0) {
+            $bps = $totalBytes / $swTotal.Elapsed.TotalSeconds
+            $mbps = [Math]::Round($bps * 8 / 1000000, 2)
+            $httpResult = $mbps.ToString('0.##', [System.Globalization.CultureInfo]::InvariantCulture) + ' Mbps'
+        }
+        elseif ($ttfbMs -gt 0) {
+            $httpResult = $ttfbMs.ToString() + ' ms'
         }
     }
-    catch {
-        return [pscustomobject] @{
-            region = $Endpoint.region
-            subregion = $Endpoint.subregion
-            city = $Endpoint.city
-            hostname = $Endpoint.hostname
-            avg_latency_ms = 'N/A'
-            status = 'failed'
-            sort_key = 999999.0
-        }
+    catch { }
+
+    return [pscustomobject] @{
+        region         = $Endpoint.region
+        subregion      = $Endpoint.subregion
+        city           = $Endpoint.city
+        hostname       = $Endpoint.hostname
+        avg_latency_ms = $avgLatency
+        http           = $httpResult
+        status         = if ($pingOk) { 'ok' } else { 'failed' }
+        sort_key       = $sortKey
     }
 }
 
@@ -275,8 +298,8 @@ $results = [System.Collections.Generic.List[object]]::new()
 
 try {
     foreach ($endpoint in $Endpoints) {
-        Write-Host ('Pinging {0} ...' -f $endpoint.hostname)
-        $jobs.Add((Start-Job -ScriptBlock $jobScript -ArgumentList $endpoint, $Count))
+        Write-Host ('Testing {0} ...' -f $endpoint.hostname)
+        $jobs.Add((Start-Job -ScriptBlock $jobScript -ArgumentList $endpoint, $Count, $TestUrlValue))
 
         while ($jobs.Count -ge $MaxJobs) {
             $finishedJob = Wait-Job -Job $jobs -Any
