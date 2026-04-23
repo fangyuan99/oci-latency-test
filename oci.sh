@@ -69,7 +69,7 @@ cat > "$TMP_FILE" <<'EOF'
 欧洲地区,法国中部,巴黎,objectstorage.eu-paris-1.oraclecloud.com
 欧洲地区,法国南部,马赛,objectstorage.eu-marseille-1.oraclecloud.com
 欧洲地区,西班牙中部,马德里,objectstorage.eu-madrid-1.oraclecloud.com
-欧洲地区,西班牙中部,马德里3,objectstorage.eu-madrid-3.oraclecloud.com
+欧洲地区,西班牙中部,马德里 3,objectstorage.eu-madrid-3.oraclecloud.com
 欧洲地区,意大利西北部,米兰,objectstorage.eu-milan-1.oraclecloud.com
 欧洲地区,意大利北部,都灵,objectstorage.eu-turin-1.oraclecloud.com
 中东地区,阿联酋东部,迪拜,objectstorage.me-dubai-1.oraclecloud.com

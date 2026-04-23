@@ -209,7 +209,7 @@ $Endpoints = @(
     @{ region = '欧洲地区'; subregion = '法国中部'; city = '巴黎'; hostname = 'objectstorage.eu-paris-1.oraclecloud.com' },
     @{ region = '欧洲地区'; subregion = '法国南部'; city = '马赛'; hostname = 'objectstorage.eu-marseille-1.oraclecloud.com' },
     @{ region = '欧洲地区'; subregion = '西班牙中部'; city = '马德里'; hostname = 'objectstorage.eu-madrid-1.oraclecloud.com' },
-    @{ region = '欧洲地区'; subregion = '西班牙中部'; city = '马德里3'; hostname = 'objectstorage.eu-madrid-3.oraclecloud.com' },
+    @{ region = '欧洲地区'; subregion = '西班牙中部'; city = '马德里 3'; hostname = 'objectstorage.eu-madrid-3.oraclecloud.com' },
     @{ region = '欧洲地区'; subregion = '意大利西北部'; city = '米兰'; hostname = 'objectstorage.eu-milan-1.oraclecloud.com' },
     @{ region = '欧洲地区'; subregion = '意大利北部'; city = '都灵'; hostname = 'objectstorage.eu-turin-1.oraclecloud.com' },
     @{ region = '中东地区'; subregion = '阿联酋东部'; city = '迪拜'; hostname = 'objectstorage.me-dubai-1.oraclecloud.com' },
