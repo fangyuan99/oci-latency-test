@@ -184,12 +184,16 @@ $Endpoints = @(
     @{ region = '亚太地区'; subregion = '韩国中部'; city = '首尔'; hostname = 'objectstorage.ap-seoul-1.oraclecloud.com' },
     @{ region = '亚太地区'; subregion = '韩国北部'; city = '春川'; hostname = 'objectstorage.ap-chuncheon-1.oraclecloud.com' },
     @{ region = '亚太地区'; subregion = '新加坡'; city = '新加坡'; hostname = 'objectstorage.ap-singapore-1.oraclecloud.com' },
+    @{ region = '亚太地区'; subregion = '新加坡西部'; city = '新加坡'; hostname = 'objectstorage.ap-singapore-2.oraclecloud.com' },
     @{ region = '亚太地区'; subregion = '澳大利亚东部'; city = '悉尼'; hostname = 'objectstorage.ap-sydney-1.oraclecloud.com' },
     @{ region = '亚太地区'; subregion = '澳大利亚东南部'; city = '墨尔本'; hostname = 'objectstorage.ap-melbourne-1.oraclecloud.com' },
     @{ region = '亚太地区'; subregion = '印度西部'; city = '孟买'; hostname = 'objectstorage.ap-mumbai-1.oraclecloud.com' },
     @{ region = '亚太地区'; subregion = '印度南部'; city = '海得拉巴'; hostname = 'objectstorage.ap-hyderabad-1.oraclecloud.com' },
+    @{ region = '亚太地区'; subregion = '印度尼西亚北部'; city = '巴淡岛'; hostname = 'objectstorage.ap-batam-1.oraclecloud.com' },
+    @{ region = '亚太地区'; subregion = '马来西亚'; city = '古来'; hostname = 'objectstorage.ap-kulai-2.oraclecloud.com' },
     @{ region = '亚太地区'; subregion = '以色列中部'; city = '耶路撒冷'; hostname = 'objectstorage.il-jerusalem-1.oraclecloud.com' },
     @{ region = '北美地区'; subregion = '美国东部'; city = '阿什本'; hostname = 'objectstorage.us-ashburn-1.oraclecloud.com' },
+    @{ region = '北美地区'; subregion = '美国中西部'; city = '芝加哥'; hostname = 'objectstorage.us-chicago-1.oraclecloud.com' },
     @{ region = '北美地区'; subregion = '美国西部'; city = '凤凰城'; hostname = 'objectstorage.us-phoenix-1.oraclecloud.com' },
     @{ region = '北美地区'; subregion = '美国西部'; city = '圣何塞'; hostname = 'objectstorage.us-sanjose-1.oraclecloud.com' },
     @{ region = '北美地区'; subregion = '加拿大东南部'; city = '蒙特利尔'; hostname = 'objectstorage.ca-montreal-1.oraclecloud.com' },
@@ -205,15 +209,20 @@ $Endpoints = @(
     @{ region = '欧洲地区'; subregion = '法国中部'; city = '巴黎'; hostname = 'objectstorage.eu-paris-1.oraclecloud.com' },
     @{ region = '欧洲地区'; subregion = '法国南部'; city = '马赛'; hostname = 'objectstorage.eu-marseille-1.oraclecloud.com' },
     @{ region = '欧洲地区'; subregion = '西班牙中部'; city = '马德里'; hostname = 'objectstorage.eu-madrid-1.oraclecloud.com' },
+    @{ region = '欧洲地区'; subregion = '西班牙中部'; city = '马德里3'; hostname = 'objectstorage.eu-madrid-3.oraclecloud.com' },
     @{ region = '欧洲地区'; subregion = '意大利西北部'; city = '米兰'; hostname = 'objectstorage.eu-milan-1.oraclecloud.com' },
+    @{ region = '欧洲地区'; subregion = '意大利北部'; city = '都灵'; hostname = 'objectstorage.eu-turin-1.oraclecloud.com' },
     @{ region = '中东地区'; subregion = '阿联酋东部'; city = '迪拜'; hostname = 'objectstorage.me-dubai-1.oraclecloud.com' },
     @{ region = '中东地区'; subregion = '阿联酋中部'; city = '阿布扎比'; hostname = 'objectstorage.me-abudhabi-1.oraclecloud.com' },
     @{ region = '中东地区'; subregion = '沙特阿拉伯西部'; city = '吉达'; hostname = 'objectstorage.me-jeddah-1.oraclecloud.com' },
+    @{ region = '中东地区'; subregion = '沙特阿拉伯中部'; city = '利雅得'; hostname = 'objectstorage.me-riyadh-1.oraclecloud.com' },
     @{ region = '南美地区'; subregion = '巴西东部'; city = '圣保罗'; hostname = 'objectstorage.sa-saopaulo-1.oraclecloud.com' },
     @{ region = '南美地区'; subregion = '巴西南部'; city = '文郝多'; hostname = 'objectstorage.sa-vinhedo-1.oraclecloud.com' },
     @{ region = '南美地区'; subregion = '智利中部'; city = '圣地亚哥'; hostname = 'objectstorage.sa-santiago-1.oraclecloud.com' },
+    @{ region = '南美地区'; subregion = '智利西部'; city = '瓦尔帕莱索'; hostname = 'objectstorage.sa-valparaiso-1.oraclecloud.com' },
     @{ region = '南美地区'; subregion = '哥伦比亚中部'; city = '波哥大'; hostname = 'objectstorage.sa-bogota-1.oraclecloud.com' },
-    @{ region = '非洲地区'; subregion = '南非中部'; city = '约翰内斯堡'; hostname = 'objectstorage.af-johannesburg-1.oraclecloud.com' }
+    @{ region = '非洲地区'; subregion = '南非中部'; city = '约翰内斯堡'; hostname = 'objectstorage.af-johannesburg-1.oraclecloud.com' },
+    @{ region = '非洲地区'; subregion = '摩洛哥西部'; city = '卡萨布兰卡'; hostname = 'objectstorage.af-casablanca-1.oraclecloud.com' }
 )
 
 $jobScript = {

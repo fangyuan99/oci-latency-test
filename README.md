@@ -186,12 +186,16 @@ results_20260320_120000.csv
 | Asia Pacific | South Korea Central | Seoul | `objectstorage.ap-seoul-1.oraclecloud.com` |
 | Asia Pacific | South Korea North | Chuncheon | `objectstorage.ap-chuncheon-1.oraclecloud.com` |
 | Asia Pacific | Singapore | Singapore | `objectstorage.ap-singapore-1.oraclecloud.com` |
+| Asia Pacific | Singapore West | Singapore | `objectstorage.ap-singapore-2.oraclecloud.com` |
 | Asia Pacific | Australia East | Sydney | `objectstorage.ap-sydney-1.oraclecloud.com` |
 | Asia Pacific | Australia Southeast | Melbourne | `objectstorage.ap-melbourne-1.oraclecloud.com` |
 | Asia Pacific | India West | Mumbai | `objectstorage.ap-mumbai-1.oraclecloud.com` |
 | Asia Pacific | India South | Hyderabad | `objectstorage.ap-hyderabad-1.oraclecloud.com` |
+| Asia Pacific | Indonesia North | Batam | `objectstorage.ap-batam-1.oraclecloud.com` |
+| Asia Pacific | Malaysia | Kulai | `objectstorage.ap-kulai-2.oraclecloud.com` |
 | Asia Pacific | Israel Central | Jerusalem | `objectstorage.il-jerusalem-1.oraclecloud.com` |
 | North America | US East | Ashburn | `objectstorage.us-ashburn-1.oraclecloud.com` |
+| North America | US Midwest | Chicago | `objectstorage.us-chicago-1.oraclecloud.com` |
 | North America | US West | Phoenix | `objectstorage.us-phoenix-1.oraclecloud.com` |
 | North America | US West | San Jose | `objectstorage.us-sanjose-1.oraclecloud.com` |
 | North America | Canada Southeast | Montreal | `objectstorage.ca-montreal-1.oraclecloud.com` |
@@ -207,15 +211,20 @@ results_20260320_120000.csv
 | Europe | France Central | Paris | `objectstorage.eu-paris-1.oraclecloud.com` |
 | Europe | France South | Marseille | `objectstorage.eu-marseille-1.oraclecloud.com` |
 | Europe | Spain Central | Madrid | `objectstorage.eu-madrid-1.oraclecloud.com` |
+| Europe | Spain Central | Madrid 3 | `objectstorage.eu-madrid-3.oraclecloud.com` |
 | Europe | Italy Northwest | Milan | `objectstorage.eu-milan-1.oraclecloud.com` |
+| Europe | Italy North | Turin | `objectstorage.eu-turin-1.oraclecloud.com` |
 | Middle East | UAE East | Dubai | `objectstorage.me-dubai-1.oraclecloud.com` |
 | Middle East | UAE Central | Abu Dhabi | `objectstorage.me-abudhabi-1.oraclecloud.com` |
 | Middle East | Saudi Arabia West | Jeddah | `objectstorage.me-jeddah-1.oraclecloud.com` |
+| Middle East | Saudi Arabia Central | Riyadh | `objectstorage.me-riyadh-1.oraclecloud.com` |
 | South America | Brazil East | Sao Paulo | `objectstorage.sa-saopaulo-1.oraclecloud.com` |
 | South America | Brazil South | Vinhedo | `objectstorage.sa-vinhedo-1.oraclecloud.com` |
 | South America | Chile Central | Santiago | `objectstorage.sa-santiago-1.oraclecloud.com` |
+| South America | Chile West | Valparaiso | `objectstorage.sa-valparaiso-1.oraclecloud.com` |
 | South America | Colombia Central | Bogota | `objectstorage.sa-bogota-1.oraclecloud.com` |
 | Africa | South Africa Central | Johannesburg | `objectstorage.af-johannesburg-1.oraclecloud.com` |
+| Africa | Morocco West | Casablanca | `objectstorage.af-casablanca-1.oraclecloud.com` |
 
 ## License
 
